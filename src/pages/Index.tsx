@@ -14,12 +14,12 @@ const Index = () => {
         GALLERY
       </div>
       <DomeGallery
-        fit={0.6}
-        minRadius={350}
+        fit={0.9}
+        minRadius={400}
         maxVerticalRotationDeg={0}
-        segments={30}
+        segments={24}
         dragDampening={3}
-        grayscale
+        grayscale={true}
       />
     </div>
   );
