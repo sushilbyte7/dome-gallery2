@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 270 60% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 8% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 8% 15%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 280 50% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 8% 18%;
+    --input: 240 8% 18%;
+    --ring: 270 60% 60%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 270 60% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 8% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 8% 18%;
+    --sidebar-ring: 270 60% 60%;
+
+    /* Gallery-specific tokens */
+    --gallery-overlay: 260 30% 4%;
+    --gallery-glow: 270 80% 65%;
+  }
+
+  .dark {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 270 60% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 8% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 8% 15%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 280 50% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 8% 18%;
+    --input: 240 8% 18%;
+    --ring: 270 60% 60%;
+
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 270 60% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 8% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 8% 18%;
+    --sidebar-ring: 270 60% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Gallery scroll lock */
+body.dg-scroll-lock {
+  overflow: hidden !important;
+  touch-action: none !important;
+  overscroll-behavior: contain !important;
+}
