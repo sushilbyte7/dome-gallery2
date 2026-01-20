@@ -1,5 +1,11 @@
-import { useEffect, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { useGesture } from '@use-gesture/react';
+
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    ('ontouchstart' in window) ||
+    (navigator.maxTouchPoints > 0);
+};
 
 interface ImageItem {
   src: string;
@@ -26,33 +32,34 @@ interface DomeGalleryProps {
   grayscale?: boolean;
 }
 
+// Optimize images for mobile - use smaller sizes and lower quality
 const DEFAULT_IMAGES: ImageItem[] = [
   {
-    src: 'https://images.unsplash.com/photo-1755331039789-7e5680e26e8f?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    src: 'https://images.unsplash.com/photo-1755331039789-7e5680e26e8f?q=60&w=500&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     alt: 'Abstract art'
   },
   {
-    src: 'https://images.unsplash.com/photo-1755569309049-98410b94f66d?q=80&w=772&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    src: 'https://images.unsplash.com/photo-1755569309049-98410b94f66d?q=60&w=500&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     alt: 'Modern sculpture'
   },
   {
-    src: 'https://images.unsplash.com/photo-1755497595318-7e5e3523854f?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    src: 'https://images.unsplash.com/photo-1755497595318-7e5e3523854f?q=60&w=500&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     alt: 'Digital artwork'
   },
   {
-    src: 'https://images.unsplash.com/photo-1755353985163-c2a0fe5ac3d8?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    src: 'https://images.unsplash.com/photo-1755353985163-c2a0fe5ac3d8?q=60&w=500&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     alt: 'Contemporary art'
   },
   {
-    src: 'https://images.unsplash.com/photo-1745965976680-d00be7dc0377?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    src: 'https://images.unsplash.com/photo-1745965976680-d00be7dc0377?q=60&w=500&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     alt: 'Geometric pattern'
   },
   {
-    src: 'https://images.unsplash.com/photo-1752588975228-21f44630bb3c?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    src: 'https://images.unsplash.com/photo-1752588975228-21f44630bb3c?q=60&w=500&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     alt: 'Textured surface'
   },
   {
-    src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=774&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=60&w=500&auto=format&fit=crop',
     alt: 'Abstract gradient'
   }
 ];
@@ -61,7 +68,8 @@ const DEFAULTS = {
   maxVerticalRotationDeg: 5,
   dragSensitivity: 20,
   enlargeTransitionMs: 300,
-  segments: 35
+  segments: 35,
+  mobileSegments: 20  // Reduced segments for mobile
 };
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
@@ -160,6 +168,8 @@ export default function DomeGallery({
   openedImageBorderRadius = '30px',
   grayscale = true
 }: DomeGalleryProps) {
+  const [isMobileDevice] = useState(isMobile());
+  const effectiveSegments = isMobileDevice ? Math.min(segments, DEFAULTS.mobileSegments) : segments;
   const rootRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   const sphereRef = useRef<HTMLDivElement>(null);
@@ -195,12 +205,13 @@ export default function DomeGallery({
     document.body.classList.remove('dg-scroll-lock');
   }, []);
 
-  const items = useMemo(() => buildItems(images, segments), [images, segments]);
+  const items = useMemo(() => buildItems(images, effectiveSegments), [images, effectiveSegments]);
 
   const applyTransform = (xDeg: number, yDeg: number) => {
     const el = sphereRef.current;
     if (el) {
-      el.style.transform = `translateZ(calc(var(--radius) * -1)) rotateX(${xDeg}deg) rotateY(${yDeg}deg)`;
+      // Use translate3d for better mobile performance
+      el.style.transform = `translateZ(calc(var(--radius) * -1)) rotateX(${xDeg}deg) rotateY(${yDeg}deg) translateZ(0)`;
     }
   };
 
@@ -348,7 +359,7 @@ export default function DomeGallery({
     const sizeX = getDataNumber(parent, 'sizeX', 2);
     const sizeY = getDataNumber(parent, 'sizeY', 2);
 
-    const parentRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segments);
+    const parentRot = computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, effectiveSegments);
     const parentY = normalizeAngle(parentRot.rotateY);
     const globalY = normalizeAngle(rotationRef.current.y);
     let rotY = -(parentY + globalY) % 360;
@@ -414,6 +425,9 @@ export default function DomeGallery({
     img.style.height = '100%';
     img.style.objectFit = 'cover';
     img.style.filter = grayscale ? 'grayscale(1)' : 'none';
+    // Enable GPU acceleration for mobile
+    img.style.transform = 'translateZ(0)';
+    img.style.willChange = 'auto';
     overlay.appendChild(img);
     viewerRef.current?.appendChild(overlay);
 
@@ -719,7 +733,10 @@ export default function DomeGallery({
     .sphere-root * {
       box-sizing: border-box;
     }
-    .sphere, .sphere-item, .item__image { transform-style: preserve-3d; }
+    .sphere, .sphere-item, .item__image { 
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+    }
     
     .stage {
       width: 100%;
@@ -737,6 +754,8 @@ export default function DomeGallery({
       transform: translateZ(calc(var(--radius) * -1));
       will-change: transform;
       position: absolute;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
     
     .sphere-item {
@@ -780,6 +799,17 @@ export default function DomeGallery({
       pointer-events: auto;
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
+      will-change: transform;
+      contain: layout style paint;
+    }
+    
+    @media (max-width: 768px) {
+      .item__image {
+        inset: 5px; /* Reduced padding on mobile */
+      }
+      .sphere-item {
+        transition: transform 200ms; /* Faster transitions on mobile */
+      }
     }
     .item__image--reference {
       position: absolute;
@@ -795,8 +825,8 @@ export default function DomeGallery({
         ref={rootRef}
         className="sphere-root relative w-full h-full"
         style={{
-          ['--segments-x' as string]: segments,
-          ['--segments-y' as string]: segments,
+          ['--segments-x' as string]: effectiveSegments,
+          ['--segments-y' as string]: effectiveSegments,
           ['--overlay-blur-color' as string]: overlayBlurColor,
           ['--tile-radius' as string]: imageBorderRadius,
           ['--enlarge-radius' as string]: openedImageBorderRadius,
@@ -864,10 +894,14 @@ export default function DomeGallery({
                       src={it.src}
                       draggable={false}
                       alt={it.alt}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover pointer-events-none"
                       style={{
                         backfaceVisibility: 'hidden',
-                        filter: `var(--image-filter, ${grayscale ? 'grayscale(1)' : 'none'})`
+                        WebkitBackfaceVisibility: 'hidden',
+                        filter: `var(--image-filter, ${grayscale ? 'grayscale(1)' : 'none'})`,
+                        transform: 'translateZ(0)'
                       }}
                     />
                   </div>
