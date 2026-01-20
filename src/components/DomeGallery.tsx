@@ -921,6 +921,7 @@ export default function DomeGallery({
               style={{ borderRadius: `var(--enlarge-radius, ${openedImageBorderRadius})` }}
             />
           </div>
+
         </main>
       </div>
     </>
