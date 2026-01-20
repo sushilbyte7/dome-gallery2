@@ -1,8 +1,10 @@
 import DomeGallery from "@/components/DomeGallery";
+import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
 
 const Index = () => {
   return (
     <div className="w-screen h-screen bg-background overflow-hidden relative">
+      <AnimatedShaderBackground />
       <div
         className="absolute top-8 left-8 z-10 uppercase tracking-[0.3em] font-light"
         style={{
